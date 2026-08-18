@@ -1,0 +1,174 @@
+.invoiceSheet {
+  font-family: 'Arial', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #000;
+  background: #fff;
+  padding: 15mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.shopName {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.address {
+  margin-left: 20px;
+  margin-bottom: 20px;
+}
+
+.boxesField {
+  margin-left: 40px;
+}
+
+.headerRight {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.label {
+  width: 90px;
+  font-weight: normal;
+}
+
+.value {
+  flex: 1;
+  border-bottom: 1px solid #000;
+  padding-bottom: 2px;
+  margin-left: 5px;
+  white-space: nowrap;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.table th, .table td {
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  padding: 4px 8px;
+}
+
+.table th {
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  text-align: left;
+  font-weight: normal;
+  font-size: 11px;
+}
+
+.table th {
+  border-left: 1px solid #000;
+  border-right: 1px solid #000;
+}
+
+.table td {
+  border-left: 1px solid #000;
+  border-right: 1px solid #000;
+}
+
+.table thead tr {
+  border-top: 1px solid #000;
+}
+
+.itemRow {
+  height: 25px; /* Fixed height for rows to make it look like a printed grid */
+}
+
+.center {
+  text-align: center;
+}
+
+.right {
+  text-align: right;
+}
+
+/* Totals Area */
+.totalsSection {
+  border-top: none;
+  margin-top: auto;
+}
+
+.tfoot {
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+
+.totalsRow td {
+  padding: 4px 8px;
+  font-weight: bold;
+}
+
+.wordsAndTaxRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+.words {
+  font-size: 14px;
+}
+
+.taxBlock {
+  display: flex;
+  justify-content: space-between;
+  width: 150px;
+}
+
+.footerRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  margin-top: 10px;
+}
+
+.terms {
+  font-size: 12px;
+}
+
+.hamaliBlock {
+  display: flex;
+  justify-content: space-between;
+  width: 150px;
+}
+
+.grandTotalRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.grandTotalValue {
+  min-width: 100px;
+  text-align: right;
+}

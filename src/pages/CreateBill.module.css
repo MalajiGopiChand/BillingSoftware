@@ -1,0 +1,104 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.editorSection {
+  margin-bottom: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.itemsSection {
+  margin-bottom: 2rem;
+}
+
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.itemsTable th {
+  text-align: left;
+  padding: 0.5rem 0;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.itemsTable td {
+  padding: 0.5rem 0;
+}
+
+.itemsTable input {
+  margin-right: 0.5rem;
+}
+
+.totalsEditor {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.previewSection {
+  display: flex;
+  justify-content: center;
+  background-color: #525659; /* PDF viewer typical background */
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.invoiceWrapper {
+  background: white;
+  color: black;
+  box-shadow: var(--shadow-lg);
+  width: 210mm; /* A4 width */
+  min-height: 297mm; /* A4 height */
+}
+
+@media print {
+  :global(.no-print) {
+    display: none !important;
+  }
+  
+  :global(body), :global(.layout) {
+    background: white;
+  }
+  
+  .container {
+    gap: 0;
+  }
+  
+  .previewSection {
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    display: block;
+  }
+  
+  .invoiceWrapper {
+    box-shadow: none;
+    width: 100%;
+  }
+}

@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if a user is logged in
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Settings Collection
+    match /company_settings/{settingId} {
+      // Any authenticated user can read and write settings
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Products Collection
+    match /products/{productId} {
+      // Any authenticated user can manage products
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Invoices Collection
+    match /invoices/{invoiceId} {
+      // Any authenticated user can read, create, and manage invoices
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Users Collection
+    match /users/{userId} {
+      // A user can read/write their own data, but other authenticated users can also read it
+      allow read: if isAuthenticated();
+      // Only the user themselves can update their profile data
+      allow write: if request.auth.uid == userId;
+    }
+  }
+}
