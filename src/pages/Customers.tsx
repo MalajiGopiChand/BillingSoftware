@@ -160,10 +160,9 @@ export default function Customers() {
               <thead>
                 <tr>
                   <th style={{padding: '0.75rem'}}>Name</th>
-                  <th style={{padding: '0.75rem'}}>Address</th>
-                  <th style={{padding: '0.75rem'}}>Phone</th>
+                  <th style={{padding: '0.75rem'}}>Phone Number</th>
+                  <th style={{padding: '0.75rem'}}>Address / Place</th>
                   <th style={{padding: '0.75rem'}}>Total Bills</th>
-                  <th style={{padding: '0.75rem'}}>Total Purchase</th>
                   <th style={{width: '120px'}}>Actions</th>
                 </tr>
               </thead>
@@ -171,12 +170,9 @@ export default function Customers() {
                 {customers.map(customer => (
                   <tr key={customer.id}>
                     <td style={{fontWeight: 'bold'}}>{customer.name}</td>
-                    <td>{customer.address || '-'}</td>
                     <td>{customer.phone || '-'}</td>
+                    <td>{customer.address || '-'}</td>
                     <td>{customer.totalBills}</td>
-                    <td style={{color: 'var(--success-color)'}}>
-                      ₹{customer.totalPurchase.toLocaleString('en-IN', {maximumFractionDigits: 2})}
-                    </td>
                     <td>
                       <div style={{display: 'flex', gap: '0.5rem'}}>
                         <button className="btn btn-secondary" style={{padding: '0.5rem'}} onClick={() => navigate(`/customers/${customer.id}`)} title="View Details">
