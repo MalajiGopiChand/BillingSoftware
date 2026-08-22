@@ -33,6 +33,8 @@ interface Invoice {
   globalBoxes: string;
   tax: number;
   hamali: number;
+  terms?: string;
+  hamaliLabel?: string;
 }
 
 export default function AllBills() {
@@ -264,6 +266,8 @@ export default function AllBills() {
                   items={previewBill.items}
                   tax={previewBill.tax}
                   hamali={previewBill.hamali}
+                  terms={previewBill.terms || '**No Replacement for Glass Items and all Fittings Damage on Tranpost**'}
+                  hamaliLabel={previewBill.hamaliLabel || 'HAMALI'}
                 />
               </div>
             </div>
