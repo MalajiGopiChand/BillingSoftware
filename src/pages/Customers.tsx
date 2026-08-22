@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Plus, Trash2, Eye } from 'lucide-react';
+import { Plus, Trash2, Eye, Edit2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Customer {
@@ -24,6 +24,15 @@ export default function Customers() {
   const [newName, setNewName] = useState('');
   const [newAddress, setNewAddress] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const resetForm = () => {
+    setNewName('');
+    setNewAddress('');
+    setNewPhone('');
+    setEditingId(null);
+    setShowAdd(false);
+  };
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -65,15 +74,23 @@ export default function Customers() {
     e.preventDefault();
     if (!newName) return;
     try {
-      await addDoc(collection(db, 'customers'), {
-        name: newName,
-        address: newAddress,
-        phone: newPhone
-      });
-      setNewName('');
-      setNewAddress('');
-      setNewPhone('');
-      setShowAdd(false);
+      if (editingId) {
+        // Update existing customer
+        const { updateDoc } = await import('firebase/firestore');
+        await updateDoc(doc(db, 'customers', editingId), {
+          name: newName.trim(),
+          address: newAddress.trim(),
+          phone: newPhone.trim()
+        });
+      } else {
+        // Add new customer
+        await addDoc(collection(db, 'customers'), {
+          name: newName.trim(),
+          address: newAddress.trim(),
+          phone: newPhone.trim()
+        });
+      }
+      resetForm();
       fetchCustomers();
     } catch (err) {
       console.error(err);
@@ -96,14 +113,21 @@ export default function Customers() {
     <div>
       <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '2rem'}}>
         <h2>Customers</h2>
-        <button className="btn btn-primary" onClick={() => setShowAdd(!showAdd)}>
-          <Plus size={18} /> Add Customer
-        </button>
+        {!showAdd && (
+          <button className="btn btn-primary" onClick={() => { resetForm(); setShowAdd(true); }}>
+            <Plus size={18} /> Add Customer
+          </button>
+        )}
       </div>
 
       {showAdd && (
         <div className="card" style={{marginBottom: '2rem'}}>
-          <h3>Add Regular Customer</h3>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <h3 style={{margin: 0}}>{editingId ? 'Edit Customer' : 'Add Regular Customer'}</h3>
+            <button className="btn btn-secondary" style={{padding: '0.4rem'}} onClick={resetForm}>
+              <X size={18} />
+            </button>
+          </div>
           <form onSubmit={handleAdd} style={{display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem'}}>
             <div style={{flex: '1 1 200px'}}>
               <label className="label">Customer / Shop Name</label>
@@ -117,8 +141,9 @@ export default function Customers() {
               <label className="label">Phone Number</label>
               <input type="tel" className="input-field" value={newPhone} onChange={e => setNewPhone(e.target.value)} />
             </div>
-            <div style={{display: 'flex', alignItems: 'flex-end', flex: '1 1 100%'}}>
-              <button type="submit" className="btn btn-primary">Save Customer</button>
+            <div style={{display: 'flex', alignItems: 'flex-end', flex: '1 1 100%', gap: '1rem'}}>
+              <button type="submit" className="btn btn-primary">{editingId ? 'Update Customer' : 'Save Customer'}</button>
+              <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>
             </div>
           </form>
         </div>
@@ -156,6 +181,16 @@ export default function Customers() {
                       <div style={{display: 'flex', gap: '0.5rem'}}>
                         <button className="btn btn-secondary" style={{padding: '0.5rem'}} onClick={() => navigate(`/customers/${customer.id}`)} title="View Details">
                           <Eye size={16} />
+                        </button>
+                        <button className="btn btn-secondary" style={{padding: '0.5rem'}} onClick={() => {
+                          setNewName(customer.name);
+                          setNewAddress(customer.address || '');
+                          setNewPhone(customer.phone || '');
+                          setEditingId(customer.id);
+                          setShowAdd(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }} title="Edit Customer">
+                          <Edit2 size={16} />
                         </button>
                         <button className="btn btn-danger" style={{padding: '0.5rem'}} onClick={() => handleDelete(customer.id)} title="Delete Customer">
                           <Trash2 size={16} />
