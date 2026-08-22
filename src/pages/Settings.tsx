@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [settings, setSettings] = useState({
     companyName: 'M/S P.RANGANATH',
     address: 'CHIRALA',
@@ -50,6 +51,68 @@ export default function Settings() {
     setSettings(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleSyncData = async () => {
+    if (!confirm('This will scan all your past bills and automatically add any missing customers and products to your master lists. Proceed?')) return;
+    setSyncing(true);
+    try {
+      const [invSnap, custSnap, prodSnap] = await Promise.all([
+        getDocs(collection(db, 'invoices')),
+        getDocs(collection(db, 'customers')),
+        getDocs(collection(db, 'products'))
+      ]);
+
+      const existingCustomers = new Set(custSnap.docs.map(d => d.data().name.toLowerCase().trim()));
+      const existingProducts = new Set(prodSnap.docs.map(d => d.data().name.toLowerCase().trim()));
+
+      let addedCusts = 0;
+      let addedProds = 0;
+
+      for (const invDoc of invSnap.docs) {
+        const data = invDoc.data();
+        
+        // Check customer
+        if (data.shopName && data.shopName.trim()) {
+          const cName = data.shopName.trim();
+          if (!existingCustomers.has(cName.toLowerCase())) {
+            await addDoc(collection(db, 'customers'), {
+              name: cName,
+              phone: data.phone || '',
+              address: data.address || ''
+            });
+            existingCustomers.add(cName.toLowerCase());
+            addedCusts++;
+          }
+        }
+
+        // Check products
+        if (data.items && Array.isArray(data.items)) {
+          for (const item of data.items) {
+            if (item.description && item.description.trim()) {
+              const pName = item.description.trim();
+              if (!existingProducts.has(pName.toLowerCase())) {
+                await addDoc(collection(db, 'products'), {
+                  name: pName,
+                  rate: Number(item.rate) || 0,
+                  packageSize: '',
+                  unit: ''
+                });
+                existingProducts.add(pName.toLowerCase());
+                addedProds++;
+              }
+            }
+          }
+        }
+      }
+
+      alert(`Sync Complete! Added ${addedCusts} missing customers and ${addedProds} missing products from your past bills.`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to sync data.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (loading) return <div>Loading settings...</div>;
 
   return (
@@ -93,6 +156,16 @@ export default function Settings() {
             {saving ? 'Saving...' : 'Save Settings'}
           </button>
         </form>
+      </div>
+
+      <div className="card" style={{maxWidth: '600px', marginTop: '2rem'}}>
+        <h3 style={{marginTop: 0, color: 'var(--text-color)'}}>Data Management</h3>
+        <p style={{color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem'}}>
+          Scan your past bills and automatically add any missing customers and products to your master lists.
+        </p>
+        <button className="btn btn-secondary" onClick={handleSyncData} disabled={syncing}>
+          {syncing ? 'Scanning & Syncing...' : 'Sync Past Data from Bills'}
+        </button>
       </div>
     </div>
   );

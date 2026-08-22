@@ -185,6 +185,33 @@ export default function CreateBill() {
       const totalAmountBeforeExtras = processedItems.reduce((sum, item) => sum + item.amount, 0);
       const grandTotal = totalAmountBeforeExtras + tax + hamali;
       
+      // Auto-save new customer
+      if (shopName.trim()) {
+        const customerExists = customers.some(c => c.name.toLowerCase() === shopName.toLowerCase().trim());
+        if (!customerExists) {
+          await addDoc(collection(db, 'customers'), {
+            name: shopName.trim(),
+            phone: phone.trim(),
+            address: address.trim()
+          });
+        }
+      }
+
+      // Auto-save new products
+      for (const item of processedItems) {
+        if (item.description.trim()) {
+          const productExists = products.some(p => p.name.toLowerCase() === item.description.toLowerCase().trim());
+          if (!productExists) {
+            await addDoc(collection(db, 'products'), {
+              name: item.description.trim(),
+              rate: Number(item.rate) || 0,
+              packageSize: '',
+              unit: ''
+            });
+          }
+        }
+      }
+
       await addDoc(collection(db, 'invoices'), {
         shopName,
         phone,
