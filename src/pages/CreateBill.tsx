@@ -231,7 +231,7 @@ export default function CreateBill() {
         createdAt: new Date().toISOString()
       });
       alert('Bill saved successfully!');
-      navigate('/bills'); // Redirect to All Bills page
+      navigate('/app/bills'); // Redirect to All Bills page
     } catch (err) {
       console.error(err);
       alert('Failed to save bill');

@@ -51,33 +51,33 @@ export default function MainLayout() {
         </div>
         
         <nav className={styles.nav}>
-          <NavLink to="/" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} end onClick={closeSidebar}>
+          <NavLink to="/app" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} end onClick={closeSidebar}>
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
           </NavLink>
-          <NavLink to="/create-bill" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+          <NavLink to="/app/create-bill" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
             <FileText size={20} />
             <span>Create Bill</span>
           </NavLink>
-          <NavLink to="/bills" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+          <NavLink to="/app/bills" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
             <FileText size={20} />
             <span>All Bills</span>
           </NavLink>
           
           <div className={styles.divider}></div>
           
-          <NavLink to="/customers" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+          <NavLink to="/app/customers" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
             <Users size={20} />
             <span>Customers</span>
           </NavLink>
-          <NavLink to="/products" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+          <NavLink to="/app/products" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
             <Package size={20} />
             <span>Products</span>
           </NavLink>
           
           <div className={styles.divider}></div>
           
-          <NavLink to="/settings" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+          <NavLink to="/app/settings" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
             <SettingsIcon size={20} />
             <span>Settings</span>
           </NavLink>

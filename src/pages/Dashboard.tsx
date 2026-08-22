@@ -142,9 +142,9 @@ export default function Dashboard() {
       
       {/* Quick Actions */}
       <div style={{display: 'flex', gap: '1rem', flexWrap: 'wrap'}}>
-        <button className="btn btn-primary" onClick={() => navigate('/create-bill')}><Plus size={18} /> Create New Bill</button>
-        <button className="btn btn-secondary" onClick={() => navigate('/customers')}><Plus size={18} /> Add Customer</button>
-        <button className="btn btn-secondary" onClick={() => navigate('/products')}><Plus size={18} /> Add Product</button>
+        <button className="btn btn-primary" onClick={() => navigate('/app/create-bill')}><Plus size={18} /> Create New Bill</button>
+        <button className="btn btn-secondary" onClick={() => navigate('/app/customers')}><Plus size={18} /> Add Customer</button>
+        <button className="btn btn-secondary" onClick={() => navigate('/app/products')}><Plus size={18} /> Add Product</button>
       </div>
 
       {/* KPI Cards */}
@@ -219,8 +219,8 @@ export default function Dashboard() {
           <FileText size={48} style={{opacity: 0.3, margin: '0 auto 1rem'}} />
           <h3>No sales data available yet</h3>
           <p style={{color: 'var(--text-muted)', marginBottom: '2rem'}}>Create your first bill to see analytics and charts.</p>
-          <button className="btn btn-primary" onClick={() => navigate('/create-bill')} style={{margin: '0 auto'}}>
-            <Plus size={18} /> Create Your First Bill
+          <button className="btn btn-primary" onClick={() => navigate('/app/create-bill')} style={{margin: '0 auto'}}>
+            <Plus size={18} /> Create your first bill
           </button>
         </div>
       ) : (
@@ -345,7 +345,7 @@ export default function Dashboard() {
             <div className="card" style={{gridColumn: '1 / -1'}}>
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
                 <h3 style={{margin: 0}}>Recent Bills</h3>
-                <button className="btn btn-secondary" style={{padding: '0.25rem 0.75rem', fontSize: '0.85rem'}} onClick={() => navigate('/bills')}>
+                <button className="btn btn-secondary" style={{padding: '0.25rem 0.75rem', fontSize: '0.85rem'}} onClick={() => navigate('/app/bills')}>
                   View All
                 </button>
               </div>

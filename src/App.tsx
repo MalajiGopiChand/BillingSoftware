@@ -10,6 +10,7 @@ import Customers from './pages/Customers';
 import CustomerProfile from './pages/CustomerProfile';
 import Products from './pages/Products';
 import Settings from './pages/Settings';
+import Landing from './pages/Landing';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -23,9 +24,10 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
+      <Route path="/app" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="create-bill" element={<CreateBill />} />
         <Route path="bills" element={<AllBills />} />

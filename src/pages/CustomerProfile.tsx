@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
@@ -129,8 +129,8 @@ export default function CustomerProfile() {
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '2rem'}}>
-      <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-        <button className="btn btn-secondary" onClick={() => navigate('/customers')} style={{padding: '0.5rem'}}>
+      <div style={{display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem'}}>
+        <button className="btn btn-secondary" onClick={() => navigate('/app/customers')} style={{padding: '0.5rem'}}>
           <ArrowLeft size={20} />
         </button>
         <h2 style={{margin: 0}}>{customer.name}</h2>

@@ -177,7 +177,7 @@ export default function Customers() {
                     <td>{customer.totalBills}</td>
                     <td>
                       <div style={{display: 'flex', gap: '0.5rem'}}>
-                        <button className="btn btn-secondary" style={{padding: '0.5rem'}} onClick={() => navigate(`/customers/${customer.id}`)} title="View Details">
+                        <button className="btn btn-secondary" style={{padding: '0.5rem'}} onClick={() => navigate(`/app/customers/${customer.id}`)} title="View Details">
                           <Eye size={16} />
                         </button>
                         <button className="btn btn-secondary" style={{padding: '0.5rem'}} onClick={() => {

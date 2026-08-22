@@ -15,7 +15,7 @@ export default function Login() {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
+      navigate('/app');
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     }

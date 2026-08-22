@@ -42,7 +42,7 @@ export default function Register() {
         gst: ''
       }, { merge: true });
 
-      navigate('/');
+      navigate('/app');
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
     } finally {
