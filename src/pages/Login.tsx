@@ -25,7 +25,7 @@ export default function Login() {
     <div className={styles.container}>
       <div className={styles.loginCard}>
         <div className={styles.header}>
-          <h2>BillingPro</h2>
+          <h2>Billora</h2>
           <p>Sign in to manage your business</p>
         </div>
         

@@ -1,51 +1,112 @@
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Users, Package, Settings as SettingsIcon, LogOut, FilePlus2 } from 'lucide-react';
-import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Users, 
+  Package, 
+  Settings as SettingsIcon, 
+  LogOut,
+  Menu,
+  X
+} from 'lucide-react';
 import styles from './MainLayout.module.css';
 
 export default function MainLayout() {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/login');
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
   };
+
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <div className={styles.layout}>
-      <aside className={styles.sidebar}>
+      
+      {/* Mobile Overlay */}
+      <div 
+        className={`${styles.overlay} ${sidebarOpen ? styles.open : ''}`} 
+        onClick={closeSidebar}
+      />
+
+      {/* Sidebar */}
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''}`}>
         <div className={styles.logo}>
-          <h2>BillingPro</h2>
+          <h2 style={{color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+            <img src="/logo.jpg" alt="Billora Logo" width="28" height="28" style={{borderRadius: '6px'}} />
+            Billora
+          </h2>
+          <button className={styles.closeBtn} onClick={closeSidebar}>
+            <X size={24} />
+          </button>
         </div>
+        
         <nav className={styles.nav}>
-          <NavLink to="/" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} end>
-            <LayoutDashboard size={20} /> Dashboard
+          <NavLink to="/" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} end onClick={closeSidebar}>
+            <LayoutDashboard size={20} />
+            <span>Dashboard</span>
           </NavLink>
-          <NavLink to="/create-bill" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-            <FilePlus2 size={20} /> Create New Bill
+          <NavLink to="/create-bill" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+            <FileText size={20} />
+            <span>Create Bill</span>
           </NavLink>
-          <NavLink to="/bills" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-            <FileText size={20} /> All Bills
+          <NavLink to="/bills" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+            <FileText size={20} />
+            <span>All Bills</span>
           </NavLink>
-          <NavLink to="/customers" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-            <Users size={20} /> Customers
+          
+          <div className={styles.divider}></div>
+          
+          <NavLink to="/customers" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+            <Users size={20} />
+            <span>Customers</span>
           </NavLink>
-          <NavLink to="/products" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-            <Package size={20} /> Products
+          <NavLink to="/products" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+            <Package size={20} />
+            <span>Products</span>
           </NavLink>
-          <div className={styles.divider} />
-          <NavLink to="/settings" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-            <SettingsIcon size={20} /> Company Settings
+          
+          <div className={styles.divider}></div>
+          
+          <NavLink to="/settings" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem} onClick={closeSidebar}>
+            <SettingsIcon size={20} />
+            <span>Settings</span>
           </NavLink>
-          <button className={styles.logoutBtn} onClick={handleLogout}>
-            <LogOut size={20} /> Logout
+
+          <button onClick={handleLogout} className={styles.logoutBtn}>
+            <LogOut size={20} />
+            <span>Log Out</span>
           </button>
         </nav>
       </aside>
-      <main className={styles.main}>
-        <Outlet />
-      </main>
+
+      {/* Main Content Area */}
+      <div style={{flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+        
+        {/* Mobile Header (Hidden on Desktop) */}
+        <div className={styles.mobileHeader}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+            <img src="/logo.jpg" alt="Billora Logo" width="28" height="28" style={{borderRadius: '6px'}} />
+            <h2 style={{margin: 0, fontSize: '1.25rem'}}>Billora</h2>
+          </div>
+          <button className={styles.hamburger} onClick={() => setSidebarOpen(true)}>
+            <Menu size={24} />
+          </button>
+        </div>
+
+        <main className={styles.main}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

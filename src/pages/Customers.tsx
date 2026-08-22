@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Customer {
   id: string;
@@ -10,8 +11,14 @@ interface Customer {
   phone: string;
 }
 
+interface CustomerWithStats extends Customer {
+  totalBills: number;
+  totalPurchase: number;
+}
+
 export default function Customers() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const navigate = useNavigate();
+  const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
@@ -21,10 +28,26 @@ export default function Customers() {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, 'customers'));
-      const custs: Customer[] = [];
-      querySnapshot.forEach((doc) => {
-        custs.push({ id: doc.id, ...doc.data() } as Customer);
+      const custSnapshot = await getDocs(collection(db, 'customers'));
+      const invSnapshot = await getDocs(collection(db, 'invoices'));
+      
+      const invoices = invSnapshot.docs.map(doc => doc.data());
+      
+      const custs: CustomerWithStats[] = [];
+      custSnapshot.forEach((doc) => {
+        const data = doc.data() as Customer;
+        
+        // Calculate stats for this customer
+        const customerInvoices = invoices.filter(inv => inv.shopName === data.name);
+        const totalBills = customerInvoices.length;
+        const totalPurchase = customerInvoices.reduce((sum, inv) => sum + (inv.grandTotal || 0), 0);
+        
+        custs.push({ 
+          ...data,
+          id: doc.id,
+          totalBills,
+          totalPurchase
+        });
       });
       setCustomers(custs);
     } catch (err) {
@@ -59,7 +82,7 @@ export default function Customers() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this customer?')) return;
+    if (!confirm('Are you sure you want to delete this customer? This will NOT delete their historical bills.')) return;
     try {
       await deleteDoc(doc(db, 'customers', id));
       fetchCustomers();
@@ -107,26 +130,37 @@ export default function Customers() {
         ) : customers.length === 0 ? (
           <p>No customers found. Add your regular customers here for quick billing.</p>
         ) : (
-          <div style={{overflowX: 'auto'}}>
-            <table style={{width: '100%', textAlign: 'left', borderCollapse: 'collapse'}}>
+          <div className="table-responsive">
+            <table className="zebra-table">
               <thead>
-                <tr style={{borderBottom: '1px solid var(--border-color)'}}>
+                <tr>
                   <th style={{padding: '0.75rem'}}>Name</th>
                   <th style={{padding: '0.75rem'}}>Address</th>
                   <th style={{padding: '0.75rem'}}>Phone</th>
-                  <th style={{padding: '0.75rem', width: '80px'}}>Actions</th>
+                  <th style={{padding: '0.75rem'}}>Total Bills</th>
+                  <th style={{padding: '0.75rem'}}>Total Purchase</th>
+                  <th style={{width: '120px'}}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {customers.map(customer => (
-                  <tr key={customer.id} style={{borderBottom: '1px solid var(--border-color)'}}>
-                    <td style={{padding: '0.75rem', fontWeight: 'bold'}}>{customer.name}</td>
-                    <td style={{padding: '0.75rem'}}>{customer.address || '-'}</td>
-                    <td style={{padding: '0.75rem'}}>{customer.phone || '-'}</td>
-                    <td style={{padding: '0.75rem'}}>
-                      <button className="btn btn-danger" style={{padding: '0.5rem'}} onClick={() => handleDelete(customer.id)}>
-                        <Trash2 size={16} />
-                      </button>
+                  <tr key={customer.id}>
+                    <td style={{fontWeight: 'bold'}}>{customer.name}</td>
+                    <td>{customer.address || '-'}</td>
+                    <td>{customer.phone || '-'}</td>
+                    <td>{customer.totalBills}</td>
+                    <td style={{color: 'var(--success-color)'}}>
+                      ₹{customer.totalPurchase.toLocaleString('en-IN', {maximumFractionDigits: 2})}
+                    </td>
+                    <td>
+                      <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <button className="btn btn-secondary" style={{padding: '0.5rem'}} onClick={() => navigate(`/customers/${customer.id}`)} title="View Details">
+                          <Eye size={16} />
+                        </button>
+                        <button className="btn btn-danger" style={{padding: '0.5rem'}} onClick={() => handleDelete(customer.id)} title="Delete Customer">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

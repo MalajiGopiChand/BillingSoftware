@@ -6,7 +6,7 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
-
+    
     // Settings Collection
     match /company_settings/{settingId} {
       // Any authenticated user can read and write settings
@@ -22,6 +22,12 @@ service cloud.firestore {
     // Invoices Collection
     match /invoices/{invoiceId} {
       // Any authenticated user can read, create, and manage invoices
+      allow read, write: if isAuthenticated();
+    }
+
+    // Customers Collection (Added to fix save issues)
+    match /customers/{customerId} {
+      // Any authenticated user can read, create, and manage customers
       allow read, write: if isAuthenticated();
     }
     

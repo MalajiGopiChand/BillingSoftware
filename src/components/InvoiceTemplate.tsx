@@ -12,28 +12,35 @@ interface InvoiceItem {
 
 interface InvoiceTemplateProps {
   shopName: string;
+  phone: string;
   address: string;
   date: string;
   invoiceNo: string;
+  gbSlipNo: string;
   transport: string;
-  lrNo: string;
   globalBoxes: string;
+  terms: string;
   items: InvoiceItem[];
   tax: number;
   hamali: number;
+  hamaliLabel?: string;
 }
 
 export default function InvoiceTemplate({
   shopName,
+  phone,
   address,
   date,
   invoiceNo,
+  gbSlipNo,
   transport,
   lrNo,
   globalBoxes,
+  terms,
   items,
   tax,
-  hamali
+  hamali,
+  hamaliLabel = 'HAMALI'
 }: InvoiceTemplateProps) {
   
   // Calculations
@@ -70,6 +77,7 @@ export default function InvoiceTemplate({
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.shopName}>{shopName}</div>
+          {phone && <div className={styles.address}>Ph: {phone}</div>}
           <div className={styles.address}>{address}</div>
           <div className={styles.boxesField}>No of Boxes: <span className={styles.value}>{globalBoxes}</span></div>
         </div>
@@ -81,6 +89,10 @@ export default function InvoiceTemplate({
           <div className={styles.fieldRow}>
             <span className={styles.label}>DATE:</span> 
             <span className={styles.value}>{date.split('-').reverse().join('-')}</span>
+          </div>
+          <div className={styles.fieldRow}>
+            <span className={styles.label}>GB SLIP NO:</span> 
+            <span className={styles.value}>{gbSlipNo}</span>
           </div>
           <div className={styles.fieldRow}>
             <span className={styles.label}>TRANSPORT:</span> 
@@ -158,10 +170,10 @@ export default function InvoiceTemplate({
 
         <div className={styles.footerRow}>
           <div className={styles.terms}>
-            **No Replacement for Glass Items and all Fittings Damage on Tranpost**
+            {terms || '**No Replacement for Glass Items and all Fittings Damage on Tranpost**'}
           </div>
           <div className={styles.hamaliBlock}>
-            <span>HAMALI:</span>
+            <span>{hamaliLabel}:</span>
             <span>{hamali > 0 ? hamali.toFixed(2) : ''}</span>
           </div>
         </div>

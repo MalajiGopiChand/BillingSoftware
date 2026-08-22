@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import CreateBill from './pages/CreateBill';
 import AllBills from './pages/AllBills';
 import Customers from './pages/Customers';
+import CustomerProfile from './pages/CustomerProfile';
 import Products from './pages/Products';
 import Settings from './pages/Settings';
 
@@ -29,6 +30,7 @@ function AppRoutes() {
         <Route path="create-bill" element={<CreateBill />} />
         <Route path="bills" element={<AllBills />} />
         <Route path="customers" element={<Customers />} />
+        <Route path="customers/:id" element={<CustomerProfile />} />
         <Route path="products" element={<Products />} />
         <Route path="settings" element={<Settings />} />
       </Route>

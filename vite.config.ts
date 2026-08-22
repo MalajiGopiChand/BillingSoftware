@@ -9,27 +9,22 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'BillingPro',
-        short_name: 'BillingPro',
-        description: 'A complete Billing and Invoice Management System',
+        name: 'Billora',
+        short_name: 'Billora',
+        description: 'Complete Billing & Invoice Management System',
         theme_color: '#2563eb',
         background_color: '#f8fafc',
         display: 'standalone',
         icons: [
           {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
+            src: 'logo.jpg',
+            sizes: '512x512',
+            type: 'image/jpeg'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'logo.jpg',
             sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'any maskable'
           }
         ]
