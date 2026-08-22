@@ -47,7 +47,9 @@ export default function Customers() {
         const data = doc.data() as Customer;
         
         // Calculate stats for this customer
-        const customerInvoices = invoices.filter(inv => inv.shopName === data.name);
+        const customerInvoices = invoices.filter(inv => 
+          (inv.shopName || '').toLowerCase().trim() === (data.name || '').toLowerCase().trim()
+        );
         const totalBills = customerInvoices.length;
         const totalPurchase = customerInvoices.reduce((sum, inv) => sum + (inv.grandTotal || 0), 0);
         

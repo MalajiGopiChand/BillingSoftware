@@ -60,12 +60,14 @@ export default function CustomerProfile() {
         const custData = { id: custDoc.id, ...custDoc.data() } as Customer;
         setCustomer(custData);
 
-        // Fetch all invoices for this customer
-        const q = query(collection(db, 'invoices'), where('shopName', '==', custData.name));
-        const querySnapshot = await getDocs(q);
+        // Fetch all invoices and filter locally for case-insensitivity
+        const querySnapshot = await getDocs(collection(db, 'invoices'));
         const invs: Invoice[] = [];
         querySnapshot.forEach((doc) => {
-          invs.push({ id: doc.id, ...doc.data() } as Invoice);
+          const invData = doc.data();
+          if ((invData.shopName || '').toLowerCase().trim() === (custData.name || '').toLowerCase().trim()) {
+            invs.push({ id: doc.id, ...invData } as Invoice);
+          }
         });
         
         // Sort manually by date descending
