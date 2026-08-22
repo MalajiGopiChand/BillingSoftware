@@ -18,6 +18,7 @@ interface InvoiceTemplateProps {
   invoiceNo: string;
   gbSlipNo: string;
   transport: string;
+  lrNo: string;
   globalBoxes: string;
   terms: string;
   items: InvoiceItem[];
