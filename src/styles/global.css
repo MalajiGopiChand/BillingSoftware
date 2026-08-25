@@ -175,3 +175,17 @@ input, textarea, select {
 .table-responsive::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-color);
 }
+
+/* Print Styles */
+@media print {
+  body {
+    background-color: white !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    margin: 0;
+    size: A4;
+  }
+}

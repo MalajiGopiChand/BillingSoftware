@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Printer, Download, Save } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { doc, getDoc, getDocs, collection, addDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, addDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import InvoiceTemplate from '../components/InvoiceTemplate';
 import styles from './CreateBill.module.css';
+import { useAuth } from '../context/AuthContext';
 
 interface InvoiceItem {
   id: string;
@@ -31,6 +32,7 @@ interface Product {
 }
 
 export default function CreateBill() {
+  const { user } = useAuth();
   const invoiceRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
@@ -71,9 +73,10 @@ export default function CreateBill() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return;
       try {
         // Fetch Settings
-        const docSnap = await getDoc(doc(db, 'company_settings', 'default'));
+        const docSnap = await getDoc(doc(db, 'company_settings', user.uid));
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.companyName) setShopName(data.companyName);
@@ -82,13 +85,13 @@ export default function CreateBill() {
         }
         
         // Fetch Customers
-        const custSnap = await getDocs(collection(db, 'customers'));
+        const custSnap = await getDocs(query(collection(db, 'customers'), where('userId', '==', user.uid)));
         const custList: Customer[] = [];
         custSnap.forEach(cDoc => custList.push({ id: cDoc.id, ...cDoc.data() } as Customer));
         setCustomers(custList);
         
         // Fetch Products
-        const prodSnap = await getDocs(collection(db, 'products'));
+        const prodSnap = await getDocs(query(collection(db, 'products'), where('userId', '==', user.uid)));
         const prodList: Product[] = [];
         prodSnap.forEach(pDoc => prodList.push({ id: pDoc.id, ...pDoc.data() } as Product));
         setProducts(prodList);
@@ -98,7 +101,7 @@ export default function CreateBill() {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   const handleCustomerSelect = (customer: Customer) => {
     setShopName(customer.name);
@@ -192,7 +195,8 @@ export default function CreateBill() {
           await addDoc(collection(db, 'customers'), {
             name: shopName.trim(),
             phone: phone.trim(),
-            address: address.trim()
+            address: address.trim(),
+            userId: user?.uid
           });
         }
       }
@@ -205,8 +209,7 @@ export default function CreateBill() {
             await addDoc(collection(db, 'products'), {
               name: item.description.trim(),
               rate: Number(item.rate) || 0,
-              packageSize: '',
-              unit: ''
+              userId: user?.uid
             });
           }
         }
@@ -228,7 +231,8 @@ export default function CreateBill() {
         hamali,
         hamaliLabel,
         grandTotal,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        userId: user?.uid
       });
       alert('Bill saved successfully!');
       navigate('/app/bills'); // Redirect to All Bills page

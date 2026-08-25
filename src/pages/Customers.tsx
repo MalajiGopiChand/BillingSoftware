@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Plus, Trash2, Eye, Edit2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface Customer {
   id: string;
@@ -17,6 +18,7 @@ interface CustomerWithStats extends Customer {
 }
 
 export default function Customers() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,10 +37,11 @@ export default function Customers() {
   };
 
   const fetchCustomers = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      const custSnapshot = await getDocs(collection(db, 'customers'));
-      const invSnapshot = await getDocs(collection(db, 'invoices'));
+      const custSnapshot = await getDocs(query(collection(db, 'customers'), where('userId', '==', user.uid)));
+      const invSnapshot = await getDocs(query(collection(db, 'invoices'), where('userId', '==', user.uid)));
       
       const invoices = invSnapshot.docs.map(doc => doc.data());
       
@@ -69,8 +72,13 @@ export default function Customers() {
   };
 
   useEffect(() => {
-    fetchCustomers();
-  }, []);
+    if (user) {
+      fetchCustomers();
+    } else {
+      setCustomers([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +97,8 @@ export default function Customers() {
         await addDoc(collection(db, 'customers'), {
           name: newName.trim(),
           address: newAddress.trim(),
-          phone: newPhone.trim()
+          phone: newPhone.trim(),
+          userId: user?.uid
         });
       }
       resetForm();

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface Customer {
   id: string;
@@ -40,6 +41,7 @@ interface Invoice {
 }
 
 export default function CustomerProfile() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -49,7 +51,7 @@ export default function CustomerProfile() {
 
   useEffect(() => {
     const fetchCustomerData = async () => {
-      if (!id) return;
+      if (!id || !user) return;
       try {
         const custDoc = await getDoc(doc(db, 'customers', id));
         if (!custDoc.exists()) {
@@ -61,7 +63,7 @@ export default function CustomerProfile() {
         setCustomer(custData);
 
         // Fetch all invoices and filter locally for case-insensitivity
-        const querySnapshot = await getDocs(collection(db, 'invoices'));
+        const querySnapshot = await getDocs(query(collection(db, 'invoices'), where('userId', '==', user.uid)));
         const invs: Invoice[] = [];
         querySnapshot.forEach((doc) => {
           const invData = doc.data();
@@ -81,7 +83,7 @@ export default function CustomerProfile() {
       }
     };
     fetchCustomerData();
-  }, [id]);
+  }, [id, user]);
 
   if (loading) return <div>Loading customer profile...</div>;
   if (!customer) return <div>Customer not found.</div>;

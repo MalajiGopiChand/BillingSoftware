@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { FileText, DollarSign, TrendingUp, Users, Package, Plus } from 'lucide-react';
 import { format, subDays, startOfMonth, isAfter, subMonths, startOfYear } from 'date-fns';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface InvoiceItem {
   description: string;
@@ -26,6 +27,7 @@ interface Invoice {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [customersCount, setCustomersCount] = useState(0);
@@ -36,19 +38,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return;
       try {
         // Fetch Invoices
-        const q = query(collection(db, 'invoices'), orderBy('date', 'desc'));
+        const q = query(collection(db, 'invoices'), where('userId', '==', user.uid));
         const invSnapshot = await getDocs(q);
         const invList: Invoice[] = [];
         invSnapshot.forEach(doc => invList.push({ id: doc.id, ...doc.data() } as Invoice));
+        invList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setInvoices(invList);
 
         // Fetch Counts
-        const custSnap = await getDocs(collection(db, 'customers'));
+        const custSnap = await getDocs(query(collection(db, 'customers'), where('userId', '==', user.uid)));
         setCustomersCount(custSnap.size);
         
-        const prodSnap = await getDocs(collection(db, 'products'));
+        const prodSnap = await getDocs(query(collection(db, 'products'), where('userId', '==', user.uid)));
         setProductsCount(prodSnap.size);
 
       } catch (err) {
@@ -57,8 +61,16 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+    
+    if (user) {
+      fetchData();
+    } else {
+      setInvoices([]);
+      setCustomersCount(0);
+      setProductsCount(0);
+      setLoading(false);
+    }
+  }, [user]);
 
   // --- STATS CALCULATIONS ---
   const now = new Date();

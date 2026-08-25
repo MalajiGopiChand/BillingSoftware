@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, collection, getDocs, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 
 export default function Settings() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -17,8 +19,9 @@ export default function Settings() {
 
   useEffect(() => {
     const fetchSettings = async () => {
+      if (!user) return;
       try {
-        const docRef = doc(db, 'company_settings', 'default');
+        const docRef = doc(db, 'company_settings', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setSettings(prev => ({ ...prev, ...docSnap.data() }));
@@ -30,13 +33,14 @@ export default function Settings() {
       }
     };
     fetchSettings();
-  }, []);
+  }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setSaving(true);
     try {
-      await setDoc(doc(db, 'company_settings', 'default'), settings, { merge: true });
+      await setDoc(doc(db, 'company_settings', user.uid), settings, { merge: true });
       alert('Settings saved successfully!');
     } catch (err) {
       console.error(err);
@@ -52,13 +56,14 @@ export default function Settings() {
   };
 
   const handleSyncData = async () => {
+    if (!user) return;
     if (!confirm('This will scan all your past bills and automatically add any missing customers and products to your master lists. Proceed?')) return;
     setSyncing(true);
     try {
       const [invSnap, custSnap, prodSnap] = await Promise.all([
-        getDocs(collection(db, 'invoices')),
-        getDocs(collection(db, 'customers')),
-        getDocs(collection(db, 'products'))
+        getDocs(query(collection(db, 'invoices'), where('userId', '==', user.uid))),
+        getDocs(query(collection(db, 'customers'), where('userId', '==', user.uid))),
+        getDocs(query(collection(db, 'products'), where('userId', '==', user.uid)))
       ]);
 
       const existingCustomers = new Set(custSnap.docs.map(d => d.data().name.toLowerCase().trim()));
@@ -77,7 +82,8 @@ export default function Settings() {
             await addDoc(collection(db, 'customers'), {
               name: cName,
               phone: data.phone || '',
-              address: data.address || ''
+              address: data.address || '',
+              userId: user.uid
             });
             existingCustomers.add(cName.toLowerCase());
             addedCusts++;
@@ -93,8 +99,7 @@ export default function Settings() {
                 await addDoc(collection(db, 'products'), {
                   name: pName,
                   rate: Number(item.rate) || 0,
-                  packageSize: '',
-                  unit: ''
+                  userId: user.uid
                 });
                 existingProducts.add(pName.toLowerCase());
                 addedProds++;

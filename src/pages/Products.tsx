@@ -1,40 +1,38 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Plus, Trash2, Edit2, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface Product {
   id: string;
   name: string;
   rate: number;
-  packageSize?: string;
-  unit?: string;
 }
 
 export default function Products() {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [newRate, setNewRate] = useState('');
-  const [newPackageSize, setNewPackageSize] = useState('');
-  const [newUnit, setNewUnit] = useState('');
   
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const resetForm = () => {
     setNewName('');
     setNewRate('');
-    setNewPackageSize('');
-    setNewUnit('');
     setEditingId(null);
     setShowAdd(false);
   };
 
   const fetchProducts = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, 'products'));
+      const q = query(collection(db, 'products'), where('userId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
       const prods: Product[] = [];
       querySnapshot.forEach((doc) => {
         prods.push({ id: doc.id, ...doc.data() } as Product);
@@ -48,29 +46,31 @@ export default function Products() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (user) {
+      fetchProducts();
+    } else {
+      setProducts([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newRate) return;
+    if (!newName || !newRate || !user) return;
     try {
       if (editingId) {
         // Update existing
         const { updateDoc } = await import('firebase/firestore');
         await updateDoc(doc(db, 'products', editingId), {
           name: newName,
-          rate: Number(newRate),
-          packageSize: newPackageSize,
-          unit: newUnit
+          rate: Number(newRate)
         });
       } else {
         // Add new
         await addDoc(collection(db, 'products'), {
           name: newName,
           rate: Number(newRate),
-          packageSize: newPackageSize,
-          unit: newUnit
+          userId: user.uid
         });
       }
       resetForm();
@@ -115,16 +115,8 @@ export default function Products() {
               <input className="input-field" value={newName} onChange={e => setNewName(e.target.value)} required />
             </div>
             <div style={{flex: '1 1 150px'}}>
-              <label className="label">Default Rate (₹)</label>
-              <input type="number" className="input-field" value={newRate} onChange={e => setNewRate(e.target.value)} required />
-            </div>
-            <div style={{flex: '1 1 150px'}}>
-              <label className="label">Package / Box Size</label>
-              <input type="text" className="input-field" value={newPackageSize} onChange={e => setNewPackageSize(e.target.value)} placeholder="e.g. 25 KG, 1 Box" />
-            </div>
-            <div style={{flex: '1 1 100px'}}>
-              <label className="label">Unit</label>
-              <input type="text" className="input-field" value={newUnit} onChange={e => setNewUnit(e.target.value)} placeholder="e.g. PCS, KG" />
+              <label className="label">Rate (₹)</label>
+              <input type="number" step="0.01" className="input-field" value={newRate} onChange={e => setNewRate(e.target.value)} required />
             </div>
             <div style={{display: 'flex', alignItems: 'flex-end', flex: '1 1 100%', gap: '1rem'}}>
               <button type="submit" className="btn btn-primary">{editingId ? 'Update Product' : 'Save Product'}</button>
@@ -145,9 +137,7 @@ export default function Products() {
               <thead>
                 <tr>
                   <th>Product Name</th>
-                  <th>Package Size</th>
-                  <th>Unit</th>
-                  <th>Default Rate (₹)</th>
+                  <th>Rate (₹)</th>
                   <th style={{width: '100px'}}>Actions</th>
                 </tr>
               </thead>
@@ -155,16 +145,12 @@ export default function Products() {
                 {products.map(product => (
                   <tr key={product.id}>
                     <td style={{fontWeight: 'bold'}}>{product.name}</td>
-                    <td>{product.packageSize || '-'}</td>
-                    <td>{product.unit || '-'}</td>
                     <td style={{color: 'var(--success-color)', fontWeight: '500'}}>{product.rate.toFixed(2)}</td>
                     <td>
                       <div style={{display: 'flex', gap: '0.5rem'}}>
                         <button className="btn btn-secondary" style={{padding: '0.4rem'}} onClick={() => {
                           setNewName(product.name);
                           setNewRate(String(product.rate));
-                          setNewPackageSize(product.packageSize || '');
-                          setNewUnit(product.unit || '');
                           setEditingId(product.id);
                           setShowAdd(true);
                           window.scrollTo({ top: 0, behavior: 'smooth' });

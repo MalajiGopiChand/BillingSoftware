@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Trash2, FileText, Search, Filter, Eye, Printer, Download, Image as ImageIcon, X } from 'lucide-react';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth, isThisYear, subMonths } from 'date-fns';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import InvoiceTemplate from '../components/InvoiceTemplate';
+import { useAuth } from '../context/AuthContext';
 
 interface InvoiceItem {
   id: string;
@@ -38,6 +39,7 @@ interface Invoice {
 }
 
 export default function AllBills() {
+  const { user } = useAuth();
   const [bills, setBills] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -50,14 +52,17 @@ export default function AllBills() {
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   const fetchBills = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      const q = query(collection(db, 'invoices'), orderBy('createdAt', 'desc'));
+      const q = query(collection(db, 'invoices'), where('userId', '==', user.uid));
       const querySnapshot = await getDocs(q);
       const fetchedBills: Invoice[] = [];
       querySnapshot.forEach((doc) => {
         fetchedBills.push({ id: doc.id, ...doc.data() } as Invoice);
       });
+      // Sort manually to avoid needing a composite index
+      fetchedBills.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       setBills(fetchedBills);
     } catch (err) {
       console.error(err);
@@ -67,8 +72,13 @@ export default function AllBills() {
   };
 
   useEffect(() => {
-    fetchBills();
-  }, []);
+    if (user) {
+      fetchBills();
+    } else {
+      setBills([]);
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this bill? This cannot be undone.')) return;
