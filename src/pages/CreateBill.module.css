@@ -50,6 +50,11 @@
 
 .itemsTable input {
   margin-right: 0.5rem;
+  color: var(--text-color, #000); /* Ensure text is visible */
+  background-color: var(--bg-card, #fff);
+  border: 1px solid var(--border-color, #ccc);
+  padding: 0.4rem;
+  width: 100%;
 }
 
 .totalsEditor {

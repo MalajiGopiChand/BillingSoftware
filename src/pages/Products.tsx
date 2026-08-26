@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Plus, Trash2, Edit2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -31,7 +31,7 @@ export default function Products() {
     if (!user) return;
     setLoading(true);
     try {
-      const q = query(collection(db, 'products'), where('userId', '==', user.uid));
+      const q = query(collection(db, 'products'));
       const querySnapshot = await getDocs(q);
       const prods: Product[] = [];
       querySnapshot.forEach((doc) => {
@@ -116,7 +116,7 @@ export default function Products() {
             </div>
             <div style={{flex: '1 1 150px'}}>
               <label className="label">Rate (₹)</label>
-              <input type="number" step="0.01" className="input-field" value={newRate} onChange={e => setNewRate(e.target.value)} required />
+              <input type="number" step="0.01" className="input-field" value={newRate} onChange={e => setNewRate(e.target.value)} />
             </div>
             <div style={{display: 'flex', alignItems: 'flex-end', flex: '1 1 100%', gap: '1rem'}}>
               <button type="submit" className="btn btn-primary">{editingId ? 'Update Product' : 'Save Product'}</button>

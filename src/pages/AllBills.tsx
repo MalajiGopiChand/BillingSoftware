@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Trash2, FileText, Search, Filter, Eye, Printer, Download, Image as ImageIcon, X } from 'lucide-react';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth, isThisYear, subMonths } from 'date-fns';
@@ -7,6 +7,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import InvoiceTemplate from '../components/InvoiceTemplate';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface InvoiceItem {
   id: string;
@@ -40,6 +41,7 @@ interface Invoice {
 
 export default function AllBills() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [bills, setBills] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -55,7 +57,7 @@ export default function AllBills() {
     if (!user) return;
     setLoading(true);
     try {
-      const q = query(collection(db, 'invoices'), where('userId', '==', user.uid));
+      const q = query(collection(db, 'invoices'));
       const querySnapshot = await getDocs(q);
       const fetchedBills: Invoice[] = [];
       querySnapshot.forEach((doc) => {
@@ -220,6 +222,9 @@ export default function AllBills() {
                     </td>
                     <td>
                       <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <button className="btn btn-secondary" style={{padding: '0.4rem'}} onClick={() => navigate('/app/create-bill', { state: { editBill: bill } })} title="Edit Bill">
+                          <FileText size={16} />
+                        </button>
                         <button className="btn btn-secondary" style={{padding: '0.4rem'}} onClick={() => setPreviewBill(bill)} title="Preview Bill">
                           <Eye size={16} />
                         </button>

@@ -14,3 +14,33 @@ body {
   width: 100%;
   overflow-x: hidden;
 }
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Only show print-area and its children */
+  .print-area, .print-area * {
+    visibility: visible;
+  }
+  
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .no-print, .no-print * {
+    display: none !important;
+  }
+}

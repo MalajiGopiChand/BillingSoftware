@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { FileText, DollarSign, TrendingUp, Users, Package, Plus } from 'lucide-react';
 import { format, subDays, startOfMonth, isAfter, subMonths, startOfYear } from 'date-fns';
@@ -41,7 +41,7 @@ export default function Dashboard() {
       if (!user) return;
       try {
         // Fetch Invoices
-        const q = query(collection(db, 'invoices'), where('userId', '==', user.uid));
+        const q = query(collection(db, 'invoices'));
         const invSnapshot = await getDocs(q);
         const invList: Invoice[] = [];
         invSnapshot.forEach(doc => invList.push({ id: doc.id, ...doc.data() } as Invoice));
@@ -49,10 +49,10 @@ export default function Dashboard() {
         setInvoices(invList);
 
         // Fetch Counts
-        const custSnap = await getDocs(query(collection(db, 'customers'), where('userId', '==', user.uid)));
+        const custSnap = await getDocs(query(collection(db, 'customers')));
         setCustomersCount(custSnap.size);
         
-        const prodSnap = await getDocs(query(collection(db, 'products'), where('userId', '==', user.uid)));
+        const prodSnap = await getDocs(query(collection(db, 'products')));
         setProductsCount(prodSnap.size);
 
       } catch (err) {

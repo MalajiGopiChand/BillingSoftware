@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
@@ -63,7 +63,7 @@ export default function CustomerProfile() {
         setCustomer(custData);
 
         // Fetch all invoices and filter locally for case-insensitivity
-        const querySnapshot = await getDocs(query(collection(db, 'invoices'), where('userId', '==', user.uid)));
+        const querySnapshot = await getDocs(query(collection(db, 'invoices')));
         const invs: Invoice[] = [];
         querySnapshot.forEach((doc) => {
           const invData = doc.data();

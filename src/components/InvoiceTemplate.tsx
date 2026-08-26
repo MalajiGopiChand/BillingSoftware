@@ -4,10 +4,10 @@ import styles from './InvoiceTemplate.module.css';
 interface InvoiceItem {
   id: string;
   description: string;
-  box: number;
-  qty: number;
-  rate: number;
-  discount: number;
+  box: number | '';
+  qty: number | '';
+  rate: number | '';
+  discount: number | '';
 }
 
 interface InvoiceTemplateProps {
@@ -50,12 +50,17 @@ export default function InvoiceTemplate({
   let totalGross = 0;
   
   const processedItems = items.map((item, index) => {
-    const gross = item.qty * item.rate;
-    const discountAmt = (gross * item.discount) / 100;
+    const box = Number(item.box) || 0;
+    const qty = Number(item.qty) || 0;
+    const rate = Number(item.rate) || 0;
+    const discount = Number(item.discount) || 0;
+    
+    const gross = qty * rate;
+    const discountAmt = (gross * discount) / 100;
     const amount = gross - discountAmt;
     
-    totalBox += item.box;
-    totalQty += item.qty;
+    totalBox += box;
+    totalQty += qty;
     totalGross += gross;
     
     return {

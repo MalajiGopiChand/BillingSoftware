@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Trash2, Printer, Download, Save } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { doc, getDoc, getDocs, collection, addDoc, query, where } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, addDoc, updateDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import InvoiceTemplate from '../components/InvoiceTemplate';
 import styles from './CreateBill.module.css';
@@ -12,10 +12,10 @@ import { useAuth } from '../context/AuthContext';
 interface InvoiceItem {
   id: string;
   description: string;
-  box: number;
-  qty: number;
-  rate: number;
-  discount: number;
+  box: number | '';
+  qty: number | '';
+  rate: number | '';
+  discount: number | '';
 }
 
 interface Customer {
@@ -35,18 +35,21 @@ export default function CreateBill() {
   const { user } = useAuth();
   const invoiceRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  
+  const location = useLocation();
+  const editBill = location.state?.editBill;
+  const [editingId, setEditingId] = useState<string | null>(editBill?.id || null);
+
   // Custom header fields (Editable per bill)
-  const [shopName, setShopName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [invoiceNo, setInvoiceNo] = useState('');
-  const [gbSlipNo, setGbSlipNo] = useState('');
-  const [transport, setTransport] = useState('');
-  const [lrNo, setLrNo] = useState('');
-  const [globalBoxes, setGlobalBoxes] = useState('');
-  const [terms, setTerms] = useState('**No Replacement for Glass Items and all Fittings Damage on Tranpost**');
+  const [shopName, setShopName] = useState(editBill?.shopName || '');
+  const [phone, setPhone] = useState(editBill?.phone || '');
+  const [address, setAddress] = useState(editBill?.address || '');
+  const [date, setDate] = useState(editBill?.date || new Date().toISOString().split('T')[0]);
+  const [invoiceNo, setInvoiceNo] = useState(editBill?.invoiceNo || '');
+  const [gbSlipNo, setGbSlipNo] = useState(editBill?.gbSlipNo || '');
+  const [transport, setTransport] = useState(editBill?.transport || '');
+  const [lrNo, setLrNo] = useState(editBill?.lrNo || '');
+  const [globalBoxes, setGlobalBoxes] = useState(editBill?.globalBoxes || '');
+  const [terms, setTerms] = useState(editBill?.terms || '**No Replacement for Glass Items and all Fittings Damage on Tranpost**');
   const [isSaving, setIsSaving] = useState(false);
   
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -57,6 +60,7 @@ export default function CreateBill() {
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
 
   const resetForm = () => {
+    setEditingId(null);
     setShopName('');
     setPhone('');
     setAddress('');
@@ -91,10 +95,36 @@ export default function CreateBill() {
         setCustomers(custList);
         
         // Fetch Products
-        const prodSnap = await getDocs(query(collection(db, 'products'), where('userId', '==', user.uid)));
+        const prodSnap = await getDocs(query(collection(db, 'products')));
         const prodList: Product[] = [];
         prodSnap.forEach(pDoc => prodList.push({ id: pDoc.id, ...pDoc.data() } as Product));
         setProducts(prodList);
+        
+        // Auto Generate Invoice No if not editing
+        if (!editBill) {
+          try {
+            const invSnap = await getDocs(query(collection(db, 'invoices'), orderBy('createdAt', 'desc'), limit(1)));
+            if (!invSnap.empty) {
+              const lastNo = invSnap.docs[0].data().invoiceNo;
+              if (lastNo) {
+                const match = lastNo.match(/(\d+)$/);
+                if (match) {
+                  const nextNum = parseInt(match[1], 10) + 1;
+                  setInvoiceNo(lastNo.replace(/(\d+)$/, nextNum.toString()));
+                } else {
+                  setInvoiceNo(lastNo + '-1');
+                }
+              } else {
+                setInvoiceNo('100');
+              }
+            } else {
+              setInvoiceNo('100');
+            }
+          } catch (e) {
+            console.error('Error fetching last invoice', e);
+            setInvoiceNo('100');
+          }
+        }
         
       } catch (err) {
         console.error(err);
@@ -111,14 +141,14 @@ export default function CreateBill() {
     setShowCustomerDropdown(false);
   };
   
-  const [items, setItems] = useState<InvoiceItem[]>([]);
+  const [items, setItems] = useState<InvoiceItem[]>(editBill?.items || []);
 
-  const [tax, setTax] = useState(0);
-  const [hamali, setHamali] = useState(0);
-  const [hamaliLabel, setHamaliLabel] = useState('HAMALI');
+  const [tax, setTax] = useState(editBill?.tax || 0);
+  const [hamali, setHamali] = useState(editBill?.hamali || 0);
+  const [hamaliLabel, setHamaliLabel] = useState(editBill?.hamaliLabel || 'HAMALI');
   
   const addItem = () => {
-    setItems([...items, { id: crypto.randomUUID(), description: '', box: 0, qty: 0, rate: 0, discount: 0 }]);
+    setItems(prev => [...prev, { id: crypto.randomUUID(), description: '', box: '', qty: '', rate: '', discount: '' }]);
   };
 
   const removeItem = (id: string) => {
@@ -140,6 +170,42 @@ export default function CreateBill() {
       }
       return item;
     }));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, id: string, field: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const tr = (e.target as HTMLElement).closest('tr');
+      if (!tr) return;
+      
+      const fields = ['description', 'box', 'qty', 'rate', 'discount'];
+      const currentIndex = fields.indexOf(field);
+      
+      if (currentIndex < fields.length - 1) {
+        const nextField = fields[currentIndex + 1];
+        const nextInput = tr.querySelector(`input[data-field="${nextField}"]`) as HTMLInputElement;
+        if (nextInput) nextInput.focus();
+      } else {
+        const isLastRow = items[items.length - 1].id === id;
+        if (isLastRow) {
+          addItem();
+          setTimeout(() => {
+            const tbody = tr.parentElement;
+            if (tbody) {
+              const lastTr = tbody.lastElementChild as HTMLElement;
+              const firstInput = lastTr.querySelector('input[data-field="description"]') as HTMLInputElement;
+              if (firstInput) firstInput.focus();
+            }
+          }, 50);
+        } else {
+          const nextTr = tr.nextElementSibling as HTMLElement;
+          if (nextTr) {
+            const firstInput = nextTr.querySelector('input[data-field="description"]') as HTMLInputElement;
+            if (firstInput) firstInput.focus();
+          }
+        }
+      }
+    }
   };
 
   const handlePrint = () => {
@@ -176,8 +242,11 @@ export default function CreateBill() {
     setIsSaving(true);
     try {
       const processedItems = items.map(item => {
-        const gross = item.qty * item.rate;
-        const discountAmt = (gross * item.discount) / 100;
+        const qty = Number(item.qty) || 0;
+        const rate = Number(item.rate) || 0;
+        const discount = Number(item.discount) || 0;
+        const gross = qty * rate;
+        const discountAmt = (gross * discount) / 100;
         return {
           ...item,
           gross,
@@ -215,7 +284,7 @@ export default function CreateBill() {
         }
       }
 
-      await addDoc(collection(db, 'invoices'), {
+      const invoiceData = {
         shopName,
         phone,
         address,
@@ -231,10 +300,19 @@ export default function CreateBill() {
         hamali,
         hamaliLabel,
         grandTotal,
-        createdAt: new Date().toISOString(),
         userId: user?.uid
-      });
-      alert('Bill saved successfully!');
+      };
+
+      if (editingId) {
+        await updateDoc(doc(db, 'invoices', editingId), invoiceData);
+        alert('Bill updated successfully!');
+      } else {
+        await addDoc(collection(db, 'invoices'), {
+          ...invoiceData,
+          createdAt: new Date().toISOString()
+        });
+        alert('Bill saved successfully!');
+      }
       navigate('/app/bills'); // Redirect to All Bills page
     } catch (err) {
       console.error(err);
@@ -255,7 +333,7 @@ export default function CreateBill() {
             <button className="btn btn-secondary" onClick={handlePrint}><Printer size={18} /> Print</button>
             <button className="btn btn-secondary" onClick={handleDownloadPDF}><Download size={18} /> PDF</button>
             <button className="btn btn-primary" onClick={handleSaveBill} disabled={isSaving}>
-              <Save size={18} /> {isSaving ? 'Saving...' : 'Save Bill'}
+              <Save size={18} /> {isSaving ? 'Saving...' : (editingId ? 'Update Bill' : 'Save Bill')}
             </button>
           </div>
         </div>
@@ -354,22 +432,24 @@ export default function CreateBill() {
                     <td style={{position: 'relative'}}>
                       <input 
                         className="input-field" 
+                        data-field="description"
                         value={item.description} 
                         onChange={e => updateItem(item.id, 'description', e.target.value)} 
+                        onKeyDown={e => handleKeyDown(e, item.id, 'description')}
                         list="product-list"
                       />
                     </td>
                     <td>
-                      <input type="number" className="input-field" value={item.box} onChange={e => updateItem(item.id, 'box', Number(e.target.value))} />
+                      <input type="number" className="input-field" data-field="box" value={item.box} onChange={e => updateItem(item.id, 'box', e.target.value ? Number(e.target.value) : '')} onKeyDown={e => handleKeyDown(e, item.id, 'box')} />
                     </td>
                     <td>
-                      <input type="number" className="input-field" value={item.qty} onChange={e => updateItem(item.id, 'qty', Number(e.target.value))} />
+                      <input type="number" className="input-field" data-field="qty" value={item.qty} onChange={e => updateItem(item.id, 'qty', e.target.value ? Number(e.target.value) : '')} onKeyDown={e => handleKeyDown(e, item.id, 'qty')} />
                     </td>
                     <td>
-                      <input type="number" className="input-field" value={item.rate} onChange={e => updateItem(item.id, 'rate', Number(e.target.value))} />
+                      <input type="number" className="input-field" data-field="rate" value={item.rate} onChange={e => updateItem(item.id, 'rate', e.target.value ? Number(e.target.value) : '')} onKeyDown={e => handleKeyDown(e, item.id, 'rate')} />
                     </td>
                     <td>
-                      <input type="number" className="input-field" value={item.discount} onChange={e => updateItem(item.id, 'discount', Number(e.target.value))} />
+                      <input type="number" className="input-field" data-field="discount" value={item.discount} onChange={e => updateItem(item.id, 'discount', e.target.value ? Number(e.target.value) : '')} onKeyDown={e => handleKeyDown(e, item.id, 'discount')} />
                     </td>
                     <td>
                       <button className="btn btn-danger" style={{padding: '0.4rem'}} onClick={() => removeItem(item.id)}>
@@ -416,7 +496,7 @@ export default function CreateBill() {
           }}>
             <div style={{color: 'var(--success-hover)', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase'}}>Grand Total</div>
             <div style={{fontSize: '2rem', fontWeight: 'bold', color: 'var(--success-color)'}}>
-              ₹{(items.reduce((sum, item) => sum + (item.qty * item.rate) - ((item.qty * item.rate * item.discount) / 100), 0) + tax + hamali).toLocaleString('en-IN', {maximumFractionDigits: 2})}
+              ₹{(items.reduce((sum, item) => sum + ((Number(item.qty) || 0) * (Number(item.rate) || 0)) - (((Number(item.qty) || 0) * (Number(item.rate) || 0) * (Number(item.discount) || 0)) / 100), 0) + tax + hamali).toLocaleString('en-IN', {maximumFractionDigits: 2})}
             </div>
           </div>
         </div>
