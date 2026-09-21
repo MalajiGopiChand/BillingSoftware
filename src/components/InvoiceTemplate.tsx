@@ -131,10 +131,10 @@ export default function InvoiceTemplate({
               <td>{item.description}</td>
               <td className={styles.center}>{item.box || ''}</td>
               <td className={styles.center}>{item.qty || ''}</td>
-              <td className={styles.right}>{item.rate ? item.rate.toFixed(2) : ''}</td>
-              <td className={styles.right}>{item.gross ? item.gross.toFixed(2) : ''}</td>
+              <td className={styles.right}>{item.rate ? Number(item.rate).toFixed(2) : ''}</td>
+              <td className={styles.right}>{item.gross ? Number(item.gross).toFixed(2) : ''}</td>
               <td className={styles.center}>{item.discount || ''}</td>
-              <td className={styles.right}>{item.amount ? item.amount.toFixed(2) : ''}</td>
+              <td className={styles.right}>{item.amount ? Number(item.amount).toFixed(2) : ''}</td>
             </tr>
           ))}
           {[...Array(emptyRows)].map((_, i) => (
@@ -156,9 +156,9 @@ export default function InvoiceTemplate({
             <td className={styles.center}>{totalBox || ''}</td>
             <td className={styles.center}>{totalQty || ''}</td>
             <td></td>
-            <td className={styles.right}>{totalGross ? totalGross.toFixed(2) : ''}</td>
+            <td className={styles.right}>{totalGross ? Number(totalGross).toFixed(2) : ''}</td>
             <td></td>
-            <td className={styles.right}>{totalAmountBeforeExtras ? totalAmountBeforeExtras.toFixed(2) : ''}</td>
+            <td className={styles.right}>{totalAmountBeforeExtras ? Number(totalAmountBeforeExtras).toFixed(2) : ''}</td>
           </tr>
         </tfoot>
       </table>
@@ -170,7 +170,7 @@ export default function InvoiceTemplate({
           </div>
           <div className={styles.taxBlock}>
             <span>TAX:</span>
-            <span>{tax > 0 ? tax.toFixed(2) : ''}</span>
+            <span>{tax > 0 ? Number(tax).toFixed(2) : ''}</span>
           </div>
         </div>
 
@@ -180,13 +180,13 @@ export default function InvoiceTemplate({
           </div>
           <div className={styles.hamaliBlock}>
             <span>{hamaliLabel}:</span>
-            <span>{hamali > 0 ? hamali.toFixed(2) : ''}</span>
+            <span>{hamali > 0 ? Number(hamali).toFixed(2) : ''}</span>
           </div>
         </div>
 
         <div className={styles.grandTotalRow}>
           <span>TOTAL AMOUNT:</span>
-          <span className={styles.grandTotalValue}>{grandTotal.toFixed(2)}</span>
+          <span className={styles.grandTotalValue}>{Number(grandTotal).toFixed(2)}</span>
         </div>
       </div>
     </div>

@@ -234,7 +234,7 @@ function SlidingNumber({
 
   const formatNumber = React.useCallback(
     (num: number) =>
-      decimalPlaces != null ? num.toFixed(decimalPlaces) : num.toString(),
+      decimalPlaces != null ? (num || 0).toFixed(decimalPlaces) : String(num || 0),
     [decimalPlaces],
   );
 
