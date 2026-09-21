@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 interface Product {
   id: string;
   name: string;
-  rate: number;
+  rate: number | '';
 }
 
 export default function Products() {
@@ -56,20 +56,20 @@ export default function Products() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newRate || !user) return;
+    if (!newName || !user) return;
     try {
       if (editingId) {
         // Update existing
         const { updateDoc } = await import('firebase/firestore');
         await updateDoc(doc(db, 'products', editingId), {
           name: newName,
-          rate: Number(newRate)
+          rate: newRate === '' ? '' : Number(newRate)
         });
       } else {
         // Add new
         await addDoc(collection(db, 'products'), {
           name: newName,
-          rate: Number(newRate),
+          rate: newRate === '' ? '' : Number(newRate),
           userId: user.uid
         });
       }
@@ -145,7 +145,9 @@ export default function Products() {
                 {products.map(product => (
                   <tr key={product.id}>
                     <td style={{fontWeight: 'bold'}}>{product.name}</td>
-                    <td style={{color: 'var(--success-color)', fontWeight: '500'}}>{product.rate.toFixed(2)}</td>
+                    <td style={{color: 'var(--success-color)', fontWeight: '500'}}>
+                      {typeof product.rate === 'number' ? product.rate.toFixed(2) : '-'}
+                    </td>
                     <td>
                       <div style={{display: 'flex', gap: '0.5rem'}}>
                         <button className="btn btn-secondary" style={{padding: '0.4rem'}} onClick={() => {

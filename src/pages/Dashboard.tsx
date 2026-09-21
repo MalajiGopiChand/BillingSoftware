@@ -6,6 +6,7 @@ import { format, subDays, startOfMonth, isAfter, subMonths, startOfYear } from '
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { SlidingNumber } from '@/components/animate-ui/primitives/texts/sliding-number';
 
 interface InvoiceItem {
   description: string;
@@ -171,7 +172,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div style={{color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500}}>Today's Sales</div>
-            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>₹{todaySales.toLocaleString('en-IN', {maximumFractionDigits: 2})}</div>
+            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>₹<SlidingNumber number={todaySales} thousandSeparator="," decimalPlaces={2} /></div>
           </div>
         </div>
         
@@ -181,7 +182,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div style={{color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500}}>This Month</div>
-            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>₹{thisMonthSales.toLocaleString('en-IN', {maximumFractionDigits: 2})}</div>
+            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>₹<SlidingNumber number={thisMonthSales} thousandSeparator="," decimalPlaces={2} /></div>
           </div>
         </div>
 
@@ -191,7 +192,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div style={{color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500}}>Overall Turnover</div>
-            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>₹{totalSales.toLocaleString('en-IN', {maximumFractionDigits: 2})}</div>
+            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>₹<SlidingNumber number={totalSales} thousandSeparator="," decimalPlaces={2} /></div>
           </div>
         </div>
 
@@ -201,7 +202,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div style={{color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500}}>Total Bills</div>
-            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>{invoices.length}</div>
+            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}><SlidingNumber number={invoices.length} /></div>
           </div>
         </div>
         
@@ -211,7 +212,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div style={{color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500}}>Total Customers</div>
-            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>{customersCount}</div>
+            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}><SlidingNumber number={customersCount} /></div>
           </div>
         </div>
 
@@ -221,7 +222,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div style={{color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500}}>Total Products</div>
-            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}>{productsCount}</div>
+            <div style={{fontSize: '1.5rem', fontWeight: 'bold'}}><SlidingNumber number={productsCount} /></div>
           </div>
         </div>
       </div>
